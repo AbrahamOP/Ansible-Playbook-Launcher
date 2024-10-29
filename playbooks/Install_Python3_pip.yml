@@ -1,0 +1,15 @@
+---
+# Installation de Python 3 et pip
+- name: Installer Python 3 et pip
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installer Python 3
+      apt:
+        name: python3
+        state: present
+
+    - name: Installer pip3
+      apt:
+        name: python3-pip
+        state: present

@@ -1,0 +1,15 @@
+---
+# Installation de Node.js
+- name: Installer Node.js sur les serveurs
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ajouter le PPA NodeSource
+      apt_repository:
+        repo: "deb https://deb.nodesource.com/node_14.x $(lsb_release -sc) main"
+        state: present
+
+    - name: Installer Node.js
+      apt:
+        name: nodejs
+        state: present

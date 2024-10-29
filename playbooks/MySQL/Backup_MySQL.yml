@@ -1,0 +1,14 @@
+---
+# Sauvegarde des bases de données MySQL
+- name: Sauvegarder les bases de données MySQL
+  hosts: dbservers
+  become: yes
+  tasks:
+    - name: Créer un répertoire de sauvegarde
+      file:
+        path: /var/backups/mysql
+        state: directory
+        mode: '0755'
+
+    - name: Sauvegarder toutes les bases de données
+      command: mysqldump --all-databases > /var/backups/mysql/all_databases.sql

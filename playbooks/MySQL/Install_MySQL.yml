@@ -1,0 +1,16 @@
+---
+# Installation de MySQL
+- name: Installer MySQL sur les serveurs
+  hosts: dbservers
+  become: yes
+  tasks:
+    - name: Installer MySQL
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Assurer que MySQL est démarré
+      service:
+        name: mysql
+        state: started
+        enabled: yes

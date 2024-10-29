@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ansible Playbook Launcher</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Liste des Playbooks</h1>
+  <ul id="playbook-list"></ul>
+
+  <!-- Modal pour entrer l'hôte -->
+  <div id="modal" style="display: none;">
+    <h2 id="modal-title"></h2>
+    <input type="text" id="host" placeholder="Nom de l'hôte">
+    <button onclick="executePlaybook()">Exécuter</button>
+    <button onclick="closeModal()">Annuler</button>
+  </div>
+
+  <!-- Console pour afficher la sortie Ansible -->
+  <pre id="console-output" style="display: none;"></pre>
+
+  <script>
+    let selectedPlaybook = '';
+
+    function renderPlaybooks(playbooks, parentElement) {
+      playbooks.forEach(playbook => {
+        const li = document.createElement('li');
+        const displayName = playbook.name.replace('.yml', '');
+        li.textContent = displayName;
+
+        if (playbook.type === 'folder') {
+          const folder = document.createElement('ul');
+          folder.style.display = 'none';
+          li.classList.add('folder');
+          li.onclick = () => {
+            folder.style.display = folder.style.display === 'none' ? 'block' : 'none';
+          };
+          renderPlaybooks(playbook.children, folder);
+          li.appendChild(folder);
+        } else if (playbook.type === 'file') {
+          const button = document.createElement('button');
+          button.textContent = 'Lancer';
+          button.onclick = () => openModal(playbook.path);
+          li.appendChild(button);
+        }
+
+        parentElement.appendChild(li);
+      });
+    }
+
+    fetch('/api/playbooks')
+      .then(response => response.json())
+      .then(data => {
+        const list = document.getElementById('playbook-list');
+        renderPlaybooks(data.playbooks, list);
+      })
+      .catch(error => console.error('Erreur lors du chargement des playbooks:', error));
+
+    function openModal(playbookPath) {
+      selectedPlaybook = playbookPath;
+      const playbookName = playbookPath.split('/').pop().replace('.yml', '');
+      document.getElementById('modal-title').textContent = `Lancer ${playbookName}`;
+      document.getElementById('modal').style.display = 'block';
+      document.body.classList.add('modal-open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+      document.getElementById('host').value = '';
+      document.body.classList.remove('modal-open');
+    }
+
+    function executePlaybook() {
+      const host = document.getElementById('host').value;
+      if (!host) {
+        alert('Veuillez entrer un hôte.');
+        return;
+      }
+
+      closeModal(); // Ferme le modal après avoir cliqué sur Exécuter
+      const consoleOutput = document.getElementById('console-output');
+      consoleOutput.style.display = 'block';
+      consoleOutput.textContent = ''; // Réinitialiser la console
+
+      fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: selectedPlaybook, host })
+      })
+      .then(response => {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        return reader.read().then(function processText({ done, value }) {
+          if (done) return;
+          consoleOutput.textContent += decoder.decode(value); // Ajoute la sortie en temps réel
+          return reader.read().then(processText);
+        });
+      })
+      .catch(error => {
+        consoleOutput.textContent = 'Erreur lors de l\'exécution du playbook : ' + error;
+      });
+    }
+  </script>
+</body>
+</html>

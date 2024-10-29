@@ -1,0 +1,14 @@
+---
+# Création d'un utilisateur système
+- name: Créer un utilisateur système
+  hosts: all
+  become: yes
+  vars:
+    new_user: "deploy"
+  tasks:
+    - name: Créer un utilisateur
+      user:
+        name: "{{ new_user }}"
+        state: present
+        create_home: yes
+        shell: /bin/bash

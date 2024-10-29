@@ -1,0 +1,13 @@
+---
+# Mise à jour de sécurité automatique
+- name: Configurer les mises à jour de sécurité automatiques
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installer unattended-upgrades
+      apt:
+        name: unattended-upgrades
+        state: present
+
+    - name: Activer les mises à jour automatiques
+      command: dpkg-reconfigure -plow unattended-upgrades

@@ -1,0 +1,26 @@
+---
+# Configuration d'un pare-feu avec UFW
+- name: Configurer un pare-feu avec UFW
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installer UFW
+      apt:
+        name: ufw
+        state: present
+
+    - name: Autoriser les connexions SSH
+      ufw:
+        rule: allow
+        port: 22
+        proto: tcp
+
+    - name: Autoriser les connexions HTTP
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+
+    - name: Activer UFW
+      ufw:
+        state: enabled

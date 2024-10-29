@@ -1,0 +1,39 @@
+---
+# Installation de Docker
+- name: Installer Docker sur les serveurs
+  hosts: all
+  become: yes
+  tasks:
+    - name: Mettre à jour la liste des packages
+      apt:
+        update_cache: yes
+
+    - name: Installer les dépendances nécessaires
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Ajouter la clé GPG de Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Ajouter le dépôt Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        state: present
+
+    - name: Installer Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Assurer que Docker est démarré
+      service:
+        name: docker
+        state: started
+        enabled: yes

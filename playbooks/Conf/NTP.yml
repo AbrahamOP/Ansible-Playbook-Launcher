@@ -1,0 +1,23 @@
+---
+# Configuration de la synchronisation NTP
+- name: Configurer NTP pour la synchronisation de l'heure
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installer le service NTP
+      apt:
+        name: ntp
+        state: present
+
+    - name: Configurer le fichier NTP
+      template:
+        src: templates/ntp.conf.j2
+        dest: /etc/ntp.conf
+      notify:
+        - Redémarrer NTP
+
+  handlers:
+    - name: Redémarrer NTP
+      service:
+        name: ntp
+        state: restarted

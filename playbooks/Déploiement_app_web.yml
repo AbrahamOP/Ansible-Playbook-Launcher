@@ -1,0 +1,25 @@
+---
+# Déploiement d'une application web
+- name: Déployer une application web sur les serveurs
+  hosts: appservers
+  become: yes
+  vars:
+    app_directory: /var/www/my_app
+  tasks:
+    - name: Créer le répertoire de l'application
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        mode: '0755'
+
+    - name: Déployer les fichiers de l'application
+      copy:
+        src: files/my_app/
+        dest: "{{ app_directory }}"
+
+    - name: Assurer que les permissions sont correctes
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        mode: '0755'
+        recurse: yes

@@ -1,0 +1,13 @@
+---
+# Nettoyage du système
+- name: Nettoyer les fichiers inutiles sur les serveurs
+  hosts: all
+  become: yes
+  tasks:
+    - name: Supprimer les paquets non utilisés
+      apt:
+        autoremove: yes
+
+    - name: Nettoyer le cache des paquets
+      apt:
+        autoclean: yes

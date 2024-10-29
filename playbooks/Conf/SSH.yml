@@ -1,0 +1,18 @@
+---
+# Configuration de SSH
+- name: Configurer SSH sur les serveurs
+  hosts: all
+  become: yes
+  tasks:
+    - name: Copier la configuration SSH personnalisée
+      template:
+        src: templates/sshd_config.j2
+        dest: /etc/ssh/sshd_config
+      notify:
+        - Redémarrer SSH
+
+  handlers:
+    - name: Redémarrer SSH
+      service:
+        name: ssh
+        state: restarted

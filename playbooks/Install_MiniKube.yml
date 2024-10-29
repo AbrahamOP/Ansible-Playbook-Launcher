@@ -1,0 +1,64 @@
+---
+- name: Installation de Minikube
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Mettre à jour le cache des paquets
+      apt:
+        update_cache: yes
+
+    - name: Installer les dépendances pour Minikube
+      apt:
+        name: 
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - conntrack
+        state: present
+
+    - name: Ajouter la clé GPG pour Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Ajouter le dépôt Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Installer Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Ajouter l'utilisateur au groupe docker
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Télécharger la dernière version de Minikube
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: '0755'
+
+    - name: Installer Kubectl
+      apt:
+        name: kubectl
+        state: present
+
+    - name: Activer Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Vérifier l'installation de Minikube
+      command: minikube version
+      register: minikube_version
+
+    - debug:
+        msg: "Minikube version: {{ minikube_version.stdout }}"

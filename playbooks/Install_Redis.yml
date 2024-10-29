@@ -1,0 +1,16 @@
+---
+# Installation de Redis
+- name: Installer Redis sur les serveurs
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installer Redis
+      apt:
+        name: redis-server
+        state: present
+
+    - name: Assurer que Redis est démarré
+      service:
+        name: redis-server
+        state: started
+        enabled: yes
