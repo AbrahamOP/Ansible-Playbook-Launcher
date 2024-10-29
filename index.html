@@ -24,7 +24,15 @@
   <script>
     let selectedPlaybook = '';
 
+    // Fonction pour créer un menu déroulant pour les playbooks et dossiers
     function renderPlaybooks(playbooks, parentElement) {
+      // Trier les dossiers en premier, puis les fichiers
+      playbooks.sort((a, b) => {
+        if (a.type === 'folder' && b.type === 'file') return -1;
+        if (a.type === 'file' && b.type === 'folder') return 1;
+        return a.name.localeCompare(b.name); // Tri alphabétique
+      });
+
       playbooks.forEach(playbook => {
         const li = document.createElement('li');
         const displayName = playbook.name.replace('.yml', '');
@@ -79,7 +87,7 @@
         return;
       }
 
-      closeModal(); // Ferme le modal après avoir cliqué sur Exécuter
+      closeModal();
       const consoleOutput = document.getElementById('console-output');
       consoleOutput.style.display = 'block';
       consoleOutput.textContent = ''; // Réinitialiser la console
@@ -94,7 +102,7 @@
         const decoder = new TextDecoder();
         return reader.read().then(function processText({ done, value }) {
           if (done) return;
-          consoleOutput.textContent += decoder.decode(value); // Ajoute la sortie en temps réel
+          consoleOutput.textContent += decoder.decode(value);
           return reader.read().then(processText);
         });
       })
