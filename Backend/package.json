@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "ansible-playbook-launcher",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "express": "^4.21.1"
+    "bcrypt": "^5.0.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "sqlite3": "^5.0.2"
   }
 }

@@ -7,19 +7,36 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Liste des Playbooks</h1>
-  <ul id="playbook-list"></ul>
-
-  <!-- Modal pour entrer l'hôte -->
-  <div id="modal" style="display: none;">
-    <h2 id="modal-title"></h2>
-    <input type="text" id="host" placeholder="Adresse IP de l'hôte">
-    <button id="execute-btn">Exécuter</button>
-    <button id="cancel-btn">Annuler</button>
+  <!-- Page de connexion -->
+  <div id="login-container" style="display: none;">
+    <h1>Connexion</h1>
+    <input type="text" id="username" placeholder="Nom d'utilisateur">
+    <input type="password" id="password" placeholder="Mot de passe">
+    <button id="login-btn">Se connecter</button>
   </div>
 
-  <!-- Console pour afficher la sortie Ansible -->
-  <pre id="console-output" style="display: none;"></pre>
+  <!-- Page d'accueil -->
+  <div id="home-container" style="display: none;">
+    <h1>Bienvenue</h1>
+    <button id="logout-btn">Se déconnecter</button>
+  </div>
+
+  <!-- Page des playbooks -->
+  <div id="playbooks-container">
+    <h1>Liste des Playbooks</h1>
+    <ul id="playbook-list"></ul>
+
+    <!-- Modal pour entrer l'hôte -->
+    <div id="modal" style="display: none;">
+      <h2 id="modal-title"></h2>
+      <input type="text" id="host" placeholder="Adresse IP de l'hôte">
+      <button id="execute-btn">Exécuter</button>
+      <button id="cancel-btn">Annuler</button>
+    </div>
+
+    <!-- Console pour afficher la sortie Ansible -->
+    <pre id="console-output" style="display: none;"></pre>
+  </div>
 
   <script src="script.js"></script>
 </body>

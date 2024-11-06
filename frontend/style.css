@@ -122,3 +122,34 @@ body {
     overflow-y: auto;
     white-space: pre-wrap;
   }
+
+  /* Style pour la page de connexion */
+  #login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  
+  #login-container input {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #2e2e2e;
+    color: #e0e0e0;
+  }
+  
+  #login-container button {
+    margin-top: 10px;
+  }
+  
+  /* Style pour la page d'accueil */
+  #home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
