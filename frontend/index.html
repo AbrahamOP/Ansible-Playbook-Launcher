@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ansible Playbook Launcher</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Liste des Playbooks</h1>
+  <ul id="playbook-list"></ul>
+
+  <!-- Modal pour entrer l'hôte -->
+  <div id="modal" style="display: none;">
+    <h2 id="modal-title"></h2>
+    <input type="text" id="host" placeholder="Adresse IP de l'hôte">
+    <button id="execute-btn">Exécuter</button>
+    <button id="cancel-btn">Annuler</button>
+  </div>
+
+  <!-- Console pour afficher la sortie Ansible -->
+  <pre id="console-output" style="display: none;"></pre>
+
+  <script src="script.js"></script>
+</body>
+</html>
