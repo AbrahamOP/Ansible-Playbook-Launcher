@@ -4,10 +4,12 @@ const path = require('path');
 const { exec } = require('child_process');
 
 const app = express();
-const playbooksDirectory = path.join('../playbooks'); // Dossier monté avec Docker pour les playbooks
+const playbooksDirectory = path.join('/playbooks'); // Dossier monté avec Docker pour les playbooks
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../frontend'))); // Sert le frontend
+
+// Servir les fichiers statiques depuis le dossier "frontend"
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 // Fonction pour obtenir les playbooks en structure arborescente
 function getPlaybooks(directory) {
@@ -40,6 +42,7 @@ app.get('/api/playbooks', (req, res) => {
     const playbooks = getPlaybooks(playbooksDirectory);
     res.json({ playbooks });
   } catch (err) {
+    console.error('Erreur lors de la lecture des playbooks:', err);
     res.status(500).json({ error: 'Erreur lors de la lecture des playbooks' });
   }
 });
@@ -50,38 +53,28 @@ app.post('/api/execute', (req, res) => {
 
   // Chemin du fichier hosts
   const hostsFilePath = path.join(__dirname, 'hosts');
-
-  // Contenu du fichier hosts
   const hostsContent = `[mes_vms]\n${host} ansible_user=root\n`;
 
-  // Créer le fichier hosts avec l'adresse IP spécifiée
   fs.writeFileSync(hostsFilePath, hostsContent);
-
   console.log(`Fichier hosts créé à : ${hostsFilePath}`);
-  console.log('Contenu du fichier hosts :');
-  console.log(hostsContent);
+  console.log('Contenu du fichier hosts :', hostsContent);
 
-  // Commande pour exécuter le playbook Ansible
   const command = `ansible-playbook -i ${hostsFilePath} ${playbookPath}`;
-
-  // Exécuter le playbook et envoyer la sortie en temps réel
   const process = exec(command);
 
   res.setHeader('Content-Type', 'text/plain');
-
-  process.stdout.on('data', data => {
-    res.write(data); // Envoie la sortie stdout en temps réel
-  });
-
-  process.stderr.on('data', data => {
-    res.write(data); // Envoie la sortie stderr en temps réel
-  });
-
+  process.stdout.on('data', data => res.write(data));
+  process.stderr.on('data', data => res.write(data));
   process.on('close', () => {
     res.end();
-    fs.unlinkSync(hostsFilePath); // Supprime le fichier hosts après exécution
+    fs.unlinkSync(hostsFilePath);
     console.log(`Fichier hosts supprimé de : ${hostsFilePath}`);
   });
+});
+
+// Rediriger les requêtes non capturées vers index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
 });
 
 app.listen(3000, () => {

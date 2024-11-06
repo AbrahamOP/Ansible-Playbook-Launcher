@@ -2,11 +2,15 @@ version: '3.8'
 
 services:
   app:
-    build: ./backend
+    build:
+      context: .            # Définit le dossier racine comme contexte
+      dockerfile: Backend/Dockerfile  # Chemin du Dockerfile dans Backend
     ports:
       - "3000:3000"
     volumes:
-      - playbooks:/playbooks
+      - ./playbooks:/playbooks   # Monte le dossier playbooks pour un stockage persistant
+    environment:
+      - NODE_ENV=production
 
 volumes:
   playbooks:
