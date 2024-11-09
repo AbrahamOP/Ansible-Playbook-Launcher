@@ -1,155 +1,124 @@
 /* Style général pour le corps */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  /* Titre principal */
-  h1 {
-    color: #f1f1f1;
-    font-size: 2rem;
-    margin-bottom: 20px;
-  }
-  
-  /* Liste des playbooks */
-  ul {
-    list-style-type: none;
-    padding: 0;
-    max-width: 400px; /* Limite la largeur de la liste */
-    width: 100%;
-  }
-  
-  /* Style pour les dossiers */
-  .folder {
-    font-weight: bold;
-    color: #f1f1f1;
-    cursor: pointer;
-    padding: 10px;
-    border: 1px solid #444;
-    border-radius: 5px;
-    margin: 10px 0; /* Ajoute de l'espace entre les dossiers */
-    background-color: #333; /* Fond plus foncé pour les dossiers */
-    width: 100%; /* Largeur uniforme */
-    box-sizing: border-box;
-  }
-  
-  /* Sous-menu masqué et avec une marge d'indentation */
-  .folder ul {
-    margin-left: 20px;
-    padding-left: 10px;
-    border-left: 2px solid #444;
-    list-style-type: none;
-    padding-top: 10px;
-  }
-  
-  /* Style pour les fichiers */
-  li {
-    background-color: #2e2e2e;
-    margin: 10px 0; /* Espace uniforme entre chaque fichier */
-    padding: 10px;
-    border: 1px solid #444;
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-    width: 100%; /* Largeur uniforme */
-    box-sizing: border-box;
-  }
-  
-  /* Boutons */
-  button {
-    background-color: #3b82f6;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.3s;
-  }
-  
-  button:hover {
-    background-color: #2563eb;
-  }
-  
-  /* Style pour le modal */
-  #modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #333;
-    color: #e0e0e0;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.7);
-    max-width: 300px;
-    width: 100%;
-    z-index: 1000;
-  }
-  
-  #modal h2 {
-    margin-top: 0;
-  }
-  
-  #host {
-    width: 100%;
-    padding: 8px;
-    margin: 10px 0;
-    border: 1px solid #444;
-    border-radius: 4px;
-    background-color: #2e2e2e;
-    color: #e0e0e0;
-  }
-  
-  /* Style pour la console de sortie */
-  #console-output {
-    background-color: #222;
-    color: #e0e0e0;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 20px;
-    width: 100%;
-    max-width: 600px;
-    height: 300px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-  }
+  font-family: Arial, sans-serif;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  /* Style pour la page de connexion */
-  #login-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  
-  #login-container input {
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #444;
-    border-radius: 4px;
-    background-color: #2e2e2e;
-    color: #e0e0e0;
-  }
-  
-  #login-container button {
-    margin-top: 10px;
-  }
-  
-  /* Style pour la page d'accueil */
-  #home-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
+/* Titre principal */
+h1 {
+  color: #f1f1f1;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+/* Liste des playbooks */
+ul {
+  list-style-type: none;
+  padding: 0;
+  max-width: 400px; /* Limite la largeur de la liste */
+  width: 100%;
+}
+
+/* Style pour les dossiers */
+.folder {
+  font-weight: bold;
+  color: #f1f1f1;
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  margin: 10px 0; /* Ajoute de l'espace entre les dossiers */
+  background-color: #333; /* Fond plus foncé pour les dossiers */
+  width: 100%; /* Largeur uniforme */
+  box-sizing: border-box;
+}
+
+/* Sous-menu masqué et avec une marge d'indentation */
+.folder ul {
+  margin-left: 20px;
+  padding-left: 10px;
+  border-left: 2px solid #444;
+  list-style-type: none;
+  padding-top: 10px;
+}
+
+/* Style pour les fichiers */
+li {
+  background-color: #2e2e2e;
+  margin: 10px 0; /* Espace uniforme entre chaque fichier */
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  width: 100%; /* Largeur uniforme */
+  box-sizing: border-box;
+}
+
+/* Boutons */
+button {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #2563eb;
+}
+
+/* Style pour le modal */
+#modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #333;
+  color: #e0e0e0;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.7);
+  max-width: 300px;
+  width: 100%;
+  z-index: 1000;
+}
+
+#modal h2 {
+  margin-top: 0;
+}
+
+#host {
+  width: 100%;
+  padding: 8px;
+  margin: 10px 0;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background-color: #2e2e2e;
+  color: #e0e0e0;
+}
+
+/* Style pour la console de sortie */
+#console-output {
+  background-color: #222;
+  color: #e0e0e0;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
