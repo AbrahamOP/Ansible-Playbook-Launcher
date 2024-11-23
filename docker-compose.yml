@@ -5,6 +5,7 @@ services:
     build:
       context: .            # Définit le dossier racine comme contexte
       dockerfile: Backend/Dockerfile  # Chemin du Dockerfile dans Backend
+    image: ansible          # Nom de l'image Docker
     ports:
       - "3000:3000"
     volumes:
