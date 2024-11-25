@@ -5,7 +5,7 @@ const { exec } = require('child_process');
 const session = require('express-session');
 
 const app = express();
-const playbooksDirectory = path.join('/playbooks'); // Dossier monté avec Docker pour les playbooks
+const playbooksDirectory = path.join(__dirname, 'playbooks'); // Dossier où les playbooks sont montés avec Docker
 
 app.use(express.json());
 app.use(session({
@@ -21,6 +21,11 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 // Fonction pour obtenir les playbooks en structure arborescente
 function getPlaybooks(directory) {
   const playbooks = [];
+  if (!fs.existsSync(directory)) {
+    console.error(`Le dossier ${directory} n'existe pas.`);
+    return playbooks;
+  }
+
   const files = fs.readdirSync(directory);
   files.forEach(file => {
     const fullPath = path.join(directory, file);
@@ -58,32 +63,56 @@ app.get('/api/playbooks', (req, res) => {
 app.post('/api/execute', (req, res) => {
   const { path: playbookPath, host } = req.body;
 
-  // Chemin du fichier hosts
-  const hostsFilePath = path.join(__dirname, 'hosts');
-  const hostsContent = `[mes_vms]\n${host} ansible_user=root\n`;
+  if (!playbookPath || !host) {
+    return res.status(400).json({ error: 'Chemin du playbook ou hôte manquant.' });
+  }
 
-  fs.writeFileSync(hostsFilePath, hostsContent);
-  console.log(`Fichier hosts créé à : ${hostsFilePath}`);
-  console.log('Contenu du fichier hosts :', hostsContent);
+  try {
+    // Chemin du fichier hosts
+    const hostsFilePath = path.join(__dirname, 'hosts');
+    const hostsContent = `[mes_vms]\n${host} ansible_user=root\n`;
 
-  const command = `ansible-playbook -i ${hostsFilePath} ${playbookPath}`;
-  const process = exec(command);
+    // Écrire le fichier hosts
+    fs.writeFileSync(hostsFilePath, hostsContent);
+    console.log(`Fichier hosts créé à : ${hostsFilePath}`);
+    console.log('Contenu du fichier hosts :', hostsContent);
 
-  res.setHeader('Content-Type', 'text/plain');
-  process.stdout.on('data', data => res.write(data));
-  process.stderr.on('data', data => res.write(data));
-  process.on('close', () => {
-    res.end();
-    fs.unlinkSync(hostsFilePath);
-    console.log(`Fichier hosts supprimé de : ${hostsFilePath}`);
-  });
+    // Commande pour exécuter le playbook
+    const command = `ansible-playbook -i ${hostsFilePath} ${playbookPath}`;
+    console.log(`Exécution de la commande : ${command}`);
+
+    const process = exec(command);
+
+    res.setHeader('Content-Type', 'text/plain');
+
+    // Flux de sortie en temps réel
+    process.stdout.on('data', data => res.write(data));
+    process.stderr.on('data', data => res.write(data));
+
+    process.on('close', code => {
+      res.end(`\nExécution terminée avec le code : ${code}`);
+      // Supprimer le fichier hosts après exécution
+      fs.unlinkSync(hostsFilePath);
+      console.log(`Fichier hosts supprimé : ${hostsFilePath}`);
+    });
+
+    process.on('error', err => {
+      console.error('Erreur lors de l’exécution du playbook :', err);
+      res.status(500).end('Erreur lors de l’exécution du playbook.');
+    });
+
+  } catch (error) {
+    console.error('Erreur :', error);
+    res.status(500).json({ error: 'Une erreur est survenue lors de l’exécution du playbook.' });
+  }
 });
 
 // Rediriger les requêtes non capturées vers index.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
+// Démarrer le serveur
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });

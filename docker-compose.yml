@@ -8,11 +8,8 @@ services:
     image: ansible          # Nom de l'image Docker
     ports:
       - "3000:3000"
-    volumes:
-      - ./playbooks:/playbooks   # Monte le dossier playbooks pour un stockage persistant
     environment:
       - NODE_ENV=production
-    #command: /bin/sh -c "[ -z \"$(ls -A /playbooks)\" ] && git clone https://github.com/AbrahamOP/BDD_Ansible.git /playbooks || echo 'Playbooks directory is not empty' && npm start"
 
 volumes:
   playbooks:

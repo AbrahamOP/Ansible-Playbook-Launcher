@@ -1,87 +1,118 @@
-let selectedPlaybook = '';
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const { exec } = require('child_process');
+const session = require('express-session');
 
-function renderPlaybooks(playbooks, parentElement) {
-  playbooks.sort((a, b) => {
-    if (a.type === 'folder' && b.type === 'file') return -1;
-    if (a.type === 'file' && b.type === 'folder') return 1;
-    return a.name.localeCompare(b.name);
-  });
+const app = express();
+const playbooksDirectory = path.join(__dirname, 'playbooks'); // Dossier où les playbooks sont montés avec Docker
 
-  playbooks.forEach(playbook => {
-    const li = document.createElement('li');
-    const displayName = playbook.name.replace('.yml', '');
-    li.textContent = displayName;
+app.use(express.json());
+app.use(session({
+  secret: 'votre_secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Mettre à true en production avec HTTPS
+}));
 
-    if (playbook.type === 'folder') {
-      const folder = document.createElement('ul');
-      folder.style.display = 'none';
-      li.classList.add('folder');
-      li.addEventListener('click', () => {
-        folder.style.display = folder.style.display === 'none' ? 'block' : 'none';
-      });
-      renderPlaybooks(playbook.children, folder);
-      li.appendChild(folder);
-    } else if (playbook.type === 'file') {
-      const button = document.createElement('button');
-      button.textContent = 'Lancer';
-      button.addEventListener('click', () => openModal(playbook.path));
-      li.appendChild(button);
-    }
+// Servir les fichiers statiques depuis le dossier "frontend"
+app.use(express.static(path.join(__dirname, 'frontend')));
 
-    parentElement.appendChild(li);
-  });
-}
-
-fetch('/api/playbooks')
-  .then(response => response.json())
-  .then(data => {
-    const list = document.getElementById('playbook-list');
-    renderPlaybooks(data.playbooks, list);
-  })
-  .catch(error => console.error('Erreur lors du chargement des playbooks:', error));
-
-function openModal(playbookPath) {
-  selectedPlaybook = playbookPath;
-  const playbookName = playbookPath.split('/').pop().replace('.yml', '');
-  document.getElementById('modal-title').textContent = `Lancer ${playbookName}`;
-  document.getElementById('modal').style.display = 'block';
-}
-
-function closeModal() {
-  document.getElementById('modal').style.display = 'none';
-  document.getElementById('host').value = '';
-}
-
-document.getElementById('execute-btn').addEventListener('click', executePlaybook);
-document.getElementById('cancel-btn').addEventListener('click', closeModal);
-
-function executePlaybook() {
-  const host = document.getElementById('host').value;
-  if (!host) {
-    alert('Veuillez entrer un hôte.');
-    return;
+// Fonction pour obtenir les playbooks en structure arborescente
+function getPlaybooks(directory) {
+  const playbooks = [];
+  if (!fs.existsSync(directory)) {
+    console.error(`Le dossier ${directory} n'existe pas.`);
+    return playbooks;
   }
 
-  closeModal();
-  const consoleOutput = document.getElementById('console-output');
-  consoleOutput.style.display = 'block';
-  consoleOutput.textContent = '';
+  const files = fs.readdirSync(directory);
+  files.forEach(file => {
+    const fullPath = path.join(directory, file);
+    const stats = fs.statSync(fullPath);
 
-  fetch('/api/execute', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path: selectedPlaybook, host })
-  })
-  .then(response => {
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    return reader.read().then(function processText({ done, value }) {
-      if (done) return;
-      consoleOutput.textContent += decoder.decode(value);
-      return reader.read().then(processText);
-    });
-  })
-  .catch(error => {
-    consoleOutput.textContent = 'Erreur lors de l\'exécution du playbook : ' + error;
+    if (stats.isDirectory()) {
+      playbooks.push({
+        name: file,
+        type: 'folder',
+        children: getPlaybooks(fullPath)
+      });
+    } else if (file.endsWith('.yml')) {
+      playbooks.push({
+        name: file,
+        type: 'file',
+        path: fullPath
+      });
+    }
   });
+  return playbooks;
 }
+
+// Route pour récupérer la structure des playbooks
+app.get('/api/playbooks', (req, res) => {
+  try {
+    const playbooks = getPlaybooks(playbooksDirectory);
+    res.json({ playbooks });
+  } catch (err) {
+    console.error('Erreur lors de la lecture des playbooks:', err);
+    res.status(500).json({ error: 'Erreur lors de la lecture des playbooks' });
+  }
+});
+
+// Route pour exécuter un playbook
+app.post('/api/execute', (req, res) => {
+  const { path: playbookPath, host } = req.body;
+
+  if (!playbookPath || !host) {
+    return res.status(400).json({ error: 'Chemin du playbook ou hôte manquant.' });
+  }
+
+  try {
+    // Chemin du fichier hosts
+    const hostsFilePath = path.join(__dirname, 'hosts');
+    const hostsContent = `[mes_vms]\n${host} ansible_user=root\n`;
+
+    // Écrire le fichier hosts
+    fs.writeFileSync(hostsFilePath, hostsContent);
+    console.log(`Fichier hosts créé à : ${hostsFilePath}`);
+    console.log('Contenu du fichier hosts :', hostsContent);
+
+    // Commande pour exécuter le playbook
+    const command = `ansible-playbook -i ${hostsFilePath} ${playbookPath}`;
+    console.log(`Exécution de la commande : ${command}`);
+
+    const process = exec(command);
+
+    res.setHeader('Content-Type', 'text/plain');
+
+    // Flux de sortie en temps réel
+    process.stdout.on('data', data => res.write(data));
+    process.stderr.on('data', data => res.write(data));
+
+    process.on('close', code => {
+      res.end(`\nExécution terminée avec le code : ${code}`);
+      // Supprimer le fichier hosts après exécution
+      fs.unlinkSync(hostsFilePath);
+      console.log(`Fichier hosts supprimé : ${hostsFilePath}`);
+    });
+
+    process.on('error', err => {
+      console.error('Erreur lors de l’exécution du playbook :', err);
+      res.status(500).end('Erreur lors de l’exécution du playbook.');
+    });
+
+  } catch (error) {
+    console.error('Erreur :', error);
+    res.status(500).json({ error: 'Une erreur est survenue lors de l’exécution du playbook.' });
+  }
+});
+
+// Rediriger les requêtes non capturées vers index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
+
+// Démarrer le serveur
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
+});

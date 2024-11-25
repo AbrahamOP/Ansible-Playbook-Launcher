@@ -14,6 +14,27 @@ RUN npm install
 COPY Backend .  
 COPY frontend /app/frontend  
 
+# Créer le répertoire "playbooks"
+RUN mkdir -p /app/playbooks
+
+# Cloner le dépôt Git dans /tmp
+RUN git clone https://github.com/AbrahamOP/BDD_Ansible.git /tmp/repo-clone
+
+# Vérifier le contenu du dépôt cloné
+RUN ls -la /tmp/repo-clone
+
+# Copier le contenu du dépôt dans le dossier "playbooks"
+RUN cp -r /tmp/repo-clone/* /app/playbooks/
+
+# Vérifier le contenu du dossier "playbooks"
+RUN ls -la /app/playbooks
+
+# Supprimer le dépôt cloné temporaire
+RUN rm -rf /tmp/repo-clone
+
+# Ajouter un fichier placeholder si "playbooks" est vide
+RUN touch /app/playbooks/.placeholder
+
 # Exposer le port sur lequel votre application écoute
 EXPOSE 3000
 
