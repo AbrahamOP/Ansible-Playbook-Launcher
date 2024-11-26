@@ -10,9 +10,15 @@ COPY Backend/package*.json ./
 # Installer les dépendances
 RUN npm install
 
-# Copier le dossier Backend et le dossier frontend dans le conteneur
-COPY Backend .  
-COPY frontend /app/frontend  
+# Copier le dossier frontend dans le bon emplacement
+COPY frontend /app/frontend
+COPY Backend/* /app/
+
+# Vérifier que le fichier index.html existe
+RUN ls -la /app/frontend/index.html || echo "ATTENTION: index.html manquant!"
+
+# Vérifier la structure des fichiers après la copie
+RUN ls -la /app && ls -la /app/frontend
 
 # Créer le répertoire "playbooks"
 RUN mkdir -p /app/playbooks

@@ -1,29 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ansible Playbook Launcher</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Ansible Playbook Launcher</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <!-- Page des playbooks -->
-  <div id="playbooks-container">
-    <h1>Liste des Playbooks</h1>
-    <ul id="playbook-list"></ul>
+    <h1>Ansible Playbook Launcher</h1>
+    
+    <div class="container">
+        <!-- Liste des playbooks -->
+        <div id="playbooks" class="playbooks-section">
+            <h2>Playbooks disponibles</h2>
+            <div id="playbooksList"></div>
+        </div>
 
-    <!-- Modal pour entrer l'hôte -->
-    <div id="modal" style="display: none;">
-      <h2 id="modal-title"></h2>
-      <input type="text" id="host" placeholder="Adresse IP de l'hôte">
-      <button id="execute-btn">Exécuter</button>
-      <button id="cancel-btn">Annuler</button>
+        <!-- Formulaire d'exécution -->
+        <div class="execution-section">
+            <h2>Exécution</h2>
+            <div class="form-group">
+                <label for="selectedPlaybook">Playbook sélectionné :</label>
+                <div id="selectedPlaybook" class="selected-playbook">Aucun playbook sélectionné</div>
+            </div>
+            <div class="form-group">
+                <label for="hostInput">Hôte cible :</label>
+                <input type="text" id="hostInput" placeholder="Exemple: 192.168.1.100">
+            </div>
+            <button onclick="executePlaybook()">Exécuter</button>
+            
+            <!-- Zone de résultat -->
+            <div id="output" class="console-output"></div>
+        </div>
     </div>
 
-    <!-- Console pour afficher la sortie Ansible -->
-    <pre id="console-output" style="display: none;"></pre>
-  </div>
+    <script>
+        let selectedPlaybookPath = null;
 
-  <script src="script.js"></script>
+        // Fonction pour charger les playbooks
+        async function loadPlaybooks() {
+            try {
+                const response = await fetch('/api/playbooks');
+                const data = await response.json();
+                displayPlaybooks(data.playbooks, document.getElementById('playbooksList'));
+            } catch (error) {
+                console.error('Erreur lors du chargement des playbooks:', error);
+            }
+        }
+
+        // Fonction pour afficher les playbooks
+        function displayPlaybooks(playbooks, container) {
+            container.innerHTML = '';
+            
+            // Trier les playbooks avec les dossiers en premier
+            const sortedPlaybooks = playbooks.sort((a, b) => {
+                if (a.type === b.type) {
+                    return a.name.localeCompare(b.name);
+                }
+                return a.type === 'folder' ? -1 : 1;
+            });
+
+            sortedPlaybooks.forEach(item => {
+                const div = document.createElement('div');
+                div.style.marginLeft = '20px';
+                
+                if (item.type === 'folder') {
+                    div.innerHTML = `<span class="folder">📁 ${item.name}</span>`;
+                    const childContainer = document.createElement('div');
+                    childContainer.style.display = 'none';
+                    if (item.children) {
+                        displayPlaybooks(item.children, childContainer);
+                    }
+                    div.appendChild(childContainer);
+                    div.querySelector('.folder').onclick = () => {
+                        childContainer.style.display = childContainer.style.display === 'none' ? 'block' : 'none';
+                    };
+                } else {
+                    div.innerHTML = `<span class="file">📄 ${item.name}</span>`;
+                    div.onclick = () => selectPlaybook(item.path, item.name);
+                }
+                container.appendChild(div);
+            });
+        }
+
+        // Fonction pour sélectionner un playbook
+        function selectPlaybook(path, name) {
+            selectedPlaybookPath = path;
+            document.getElementById('selectedPlaybook').textContent = name;
+            document.querySelectorAll('.file').forEach(el => el.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        // Fonction pour exécuter le playbook
+        async function executePlaybook() {
+            const host = document.getElementById('hostInput').value;
+            const output = document.getElementById('output');
+
+            if (!selectedPlaybookPath || !host) {
+                alert('Veuillez sélectionner un playbook et spécifier un hôte.');
+                return;
+            }
+
+            try {
+                output.textContent = 'Exécution en cours...\n';
+                const response = await fetch('/api/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: selectedPlaybookPath,
+                        host: host
+                    })
+                });
+
+                const reader = response.body.getReader();
+                while (true) {
+                    const {value, done} = await reader.read();
+                    if (done) break;
+                    output.textContent += new TextDecoder().decode(value);
+                }
+            } catch (error) {
+                console.error('Erreur lors de l\'exécution:', error);
+                output.textContent += '\nErreur lors de l\'exécution du playbook.';
+            }
+        }
+
+        // Charger les playbooks au démarrage
+        loadPlaybooks();
+    </script>
 </body>
 </html>

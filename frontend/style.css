@@ -1,13 +1,97 @@
-/* Style général pour le corps */
+/* Style général */
 body {
-  font-family: Arial, sans-serif;
-  background-color: #1e1e1e;
-  color: #e0e0e0;
-  margin: 0;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    font-family: Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Sections */
+.playbooks-section {
+    flex: 0 0 300px;
+    background-color: #2d2d2d;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.execution-section {
+    flex: 1;
+    background-color: #2d2d2d;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 600px; /* Limite la largeur maximale de la section */
+}
+
+/* Playbooks */
+.folder {
+    color: #64b5f6;
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+.file {
+    color: #81c784;
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+.selected {
+    background-color: #3d3d3d;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+/* Formulaire */
+.form-group {
+    margin-bottom: 15px;
+    max-width: 400px; /* Limite la largeur du groupe de formulaire */
+}
+
+input {
+    width: 250px; /* Réduire la largeur du champ de saisie */
+    padding: 8px;
+    background-color: #3d3d3d;
+    border: 1px solid #4d4d4d;
+    color: #e0e0e0;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* Console de sortie */
+.console-output {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #1a1a1a;
+    border-radius: 4px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    height: 300px;
+    overflow-y: auto;
+}
+
+.selected-playbook {
+    max-width: 250px; /* Limite la largeur du playbook sélectionné */
+    word-wrap: break-word;
 }
 
 /* Titre principal */
@@ -15,6 +99,8 @@ h1 {
   color: #f1f1f1;
   font-size: 2rem;
   margin-bottom: 20px;
+  text-align: center; /* Centre le titre */
+  width: 100%; /* Assure que le titre prend toute la largeur */
 }
 
 /* Liste des playbooks */
@@ -23,20 +109,6 @@ ul {
   padding: 0;
   max-width: 400px; /* Limite la largeur de la liste */
   width: 100%;
-}
-
-/* Style pour les dossiers */
-.folder {
-  font-weight: bold;
-  color: #f1f1f1;
-  cursor: pointer;
-  padding: 10px;
-  border: 1px solid #444;
-  border-radius: 5px;
-  margin: 10px 0; /* Ajoute de l'espace entre les dossiers */
-  background-color: #333; /* Fond plus foncé pour les dossiers */
-  width: 100%; /* Largeur uniforme */
-  box-sizing: border-box;
 }
 
 /* Sous-menu masqué et avec une marge d'indentation */
@@ -61,22 +133,6 @@ li {
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
   width: 100%; /* Largeur uniforme */
   box-sizing: border-box;
-}
-
-/* Boutons */
-button {
-  background-color: #3b82f6;
-  color: white;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #2563eb;
 }
 
 /* Style pour le modal */

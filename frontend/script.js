@@ -3,12 +3,20 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const session = require('express-session');
+const RedisStore = require('connect-redis')(session);
+const redis = require('redis');
 
 const app = express();
 const playbooksDirectory = path.join(__dirname, 'playbooks'); // Dossier où les playbooks sont montés avec Docker
 
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6380
+});
+
 app.use(express.json());
 app.use(session({
+  store: new RedisStore({ client: redisClient }),
   secret: 'votre_secret',
   resave: false,
   saveUninitialized: true,
@@ -17,6 +25,21 @@ app.use(session({
 
 // Servir les fichiers statiques depuis le dossier "frontend"
 app.use(express.static(path.join(__dirname, 'frontend')));
+
+let lastActivity = Date.now();
+const INACTIVITY_TIMEOUT = 300000; // 5 minutes
+
+app.use((req, res, next) => {
+  lastActivity = Date.now();
+  next();
+});
+
+setInterval(() => {
+  if (Date.now() - lastActivity > INACTIVITY_TIMEOUT) {
+    console.log('Aucune activité détectée. Arrêt du serveur.');
+    process.exit(0);
+  }
+}, 60000); // Vérifier toutes les minutes
 
 // Fonction pour obtenir les playbooks en structure arborescente
 function getPlaybooks(directory) {
@@ -109,6 +132,7 @@ app.post('/api/execute', (req, res) => {
 
 // Rediriger les requêtes non capturées vers index.html
 app.get('*', (req, res) => {
+  console.log('Redirection vers index.html');
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 

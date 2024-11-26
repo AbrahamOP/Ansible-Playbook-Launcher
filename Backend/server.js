@@ -3,20 +3,53 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const session = require('express-session');
+const RedisStore = require('connect-redis')(session);
+const redis = require('redis');
 
 const app = express();
 const playbooksDirectory = path.join(__dirname, 'playbooks'); // Dossier où les playbooks sont montés avec Docker
 
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6380
+});
+
+// Ajout de logs pour déboguer les chemins
+console.log('Chemin du répertoire courant:', __dirname);
+console.log('Chemin du frontend:', path.join(__dirname, 'frontend'));
+
+// Servir les fichiers statiques depuis le dossier frontend
+app.use(express.static(path.join(__dirname, 'frontend')));
+console.log('Dossier statique:', path.join(__dirname, 'frontend'));
+
 app.use(express.json());
 app.use(session({
+  store: new RedisStore({ client: redisClient }),
   secret: 'votre_secret',
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false } // Mettre à true en production avec HTTPS
 }));
 
-// Servir les fichiers statiques depuis le dossier "frontend"
-app.use(express.static(path.join(__dirname, 'frontend')));
+let lastActivity = Date.now();
+const INACTIVITY_TIMEOUT = 300000; // 5 minutes
+
+// Modifier la gestion de l'inactivité pour exclure les requêtes statiques
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api')) {
+    return next();
+  }
+  console.log(`Requête API reçue : ${req.path}`);
+  lastActivity = Date.now();
+  next();
+});
+
+setInterval(() => {
+  if (Date.now() - lastActivity > INACTIVITY_TIMEOUT) {
+    console.log('Aucune activité détectée. Arrêt du serveur.');
+    process.exit(0);
+  }
+}, 60000); // Vérifier toutes les minutes
 
 // Fonction pour obtenir les playbooks en structure arborescente
 function getPlaybooks(directory) {
@@ -107,9 +140,20 @@ app.post('/api/execute', (req, res) => {
   }
 });
 
-// Rediriger les requêtes non capturées vers index.html
+// Améliorer la redirection vers index.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  console.log(`Tentative d'accès à : ${req.path}`);
+  const indexPath = path.join(__dirname, 'frontend', 'index.html');
+  console.log(`Envoi du fichier : ${indexPath}`);
+  
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    console.error(`Fichier non trouvé : ${indexPath}`);
+    // Liste les fichiers dans le répertoire frontend pour le débogage
+    console.log('Contenu du répertoire frontend:', fs.readdirSync(path.join(__dirname, 'frontend')));
+    res.status(404).send('Page non trouvée');
+  }
 });
 
 // Démarrer le serveur
